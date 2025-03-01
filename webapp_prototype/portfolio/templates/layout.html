@@ -34,15 +34,15 @@
 
 <body>
     <!-- Header -->
-    <header class="p-3 bg-dark text-white">
+    <header class="p-3 bg-primary text-white">
         <div class="container">
           <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
             <a href="{{url_for('login')}}" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
-              <img id="header-icon" src="{{url_for('static',filename='img/resume_icon.png')}}"> 
+              <img id="header-icon" src="{{url_for('static',filename='img/CTM_icon.png')}}"> 
             </a>
               <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
                 <li><a href="{{url_for('about')}}" class="nav-link px-2 text-white">About</a></li>
-                <li><a href="{{url_for('skills')}}" class="nav-link px-2 text-white">Skills</a></li>
+                <li><a href="{{url_for('tasks')}}" class="nav-link px-2 text-white">Tasks</a></li>
                 <li><a href="{{url_for('experience')}}" class="nav-link px-2 text-white">Experience</a></li>
                 <li><a href="{{url_for('projects')}}" class="nav-link px-2 text-white">Projects</a></li>
                 <li><a href="{{url_for('portfolio', username=session["username"])}}" class="nav-link px-2 text-white">Your Portfolio</a></li>
