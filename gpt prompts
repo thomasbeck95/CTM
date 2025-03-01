@@ -1,0 +1,147 @@
+chat gpt prompts and results:
+
+prompt:
+i am working on developing a model to assign a priority category to a range of clinical tasks to help GP's better manage their workloads. Create me a dataset where each row is a task, with the following features:
+
+Task Type: string, possible values are [prescription request, patient communication (via phone, NHS app, AccuRX), sick notes, referral letters, medical reports, review results]
+Comorbidities: multiple columns, all boolean: [epilepsy, historical heart attack / stroke, diabetes, mental health].  
+BMI: numeric value
+Time since task requested: numeric value (hours/days)
+Estimated task duration: numeric (minutes / hours)
+Critical result flag: if task type is review results, then this can be 0 or 1. indicates if the result fell extremely far out of acceptable range. e.g. very high white blood cell count
+
+Outcome variable is a colour coded priority flag (red, amber, green). Red is highest priority.
+
+Use some of this logic to assign priority values according to the above features:
+patient communication and reviewing results should be correlated with higher priority score. 
+There is an interaction between comorbidities and task type. e.g. epilepsy sufferer and prescription request = high priority. historical heart attach and prescription request = medium priority. 
+Lower priority tasks can move up the order of prioritisation if they have been in the system for longer. takes longer for green tasks to move into orange tasks vs orange into red. 
+
+result:
+
+
+
+
+prompt: 
+lets add in some more variables: 
+within prescription requests, the following fields should influence the prioritisation label:
+
+type of medication - value should be type of medication. each of these has its own level of risk, should they not be administered. e.g., high risk: insulin, anti-epileptics, immunosuppresants. medium risk: blood pressure medication, statins, SSRI
+low risk: vitamins, emollients, mild pain relief
+days until out of supply: numeric, can be negative if already run out. <=1 days is emergency, 2-3 days if medium priority, anything more if low priority
+polypharmacy: yes or no depending on if more than 5 medications. polypharmacy should be prioritised more
+request type: string. higher priority if value is out-of-hours gp, phramacist, phone. routine requests via online or nhs app is medium. routine scheduled repeats is low
+monitoring required: true or false. if monitoring is required before prescribing. if true, then higher priority
+
+result:
+# Define additional features specific to prescription requests
+medication_types = {
+    "high": ["insulin", "anti-epileptics", "immunosuppressants"],
+    "medium": ["blood pressure medication", "statins", "SSRI"],
+    "low": ["vitamins", "emollients", "mild pain relief"],
+}
+
+request_types = {
+    "high": ["out-of-hours gp", "pharmacist", "phone"],
+    "medium": ["online", "NHS app"],
+    "low": ["routine scheduled repeat"]
+}
+
+# Function to assign prescription-related features
+def generate_prescription_features():
+    med_risk = np.random.choice(["high", "medium", "low"], p=[0.2, 0.4, 0.4])
+    medication = np.random.choice(medication_types[med_risk])
+    days_until_out = np.random.randint(-3, 10)  # Can be negative if already run out
+    polypharmacy = np.random.choice([0, 1], p=[0.8, 0.2])  # 20% chance of polypharmacy
+    request_type_risk = np.random.choice(["high", "medium", "low"], p=[0.3, 0.5, 0.2])
+    request_type = np.random.choice(request_types[request_type_risk])
+    monitoring_required = np.random.choice([0, 1], p=[0.2, 0.8])  # 20% chance of needing monitoring
+    return medication, days_until_out, polypharmacy, request_type, monitoring_required
+
+# Updated priority function
+def assign_priority_with_prescription_features(task, comorbidities, time_since_requested, 
+                                               critical_result, medication, days_until_out, 
+                                               polypharmacy, request_type, monitoring_required):
+    if task == "review results":
+        return "red" if critical_result else "amber"
+
+    if task.startswith("patient communication"):
+        return "red"
+
+    if task == "prescription request":
+        # Higher risk medication & emergency supply needed
+        if days_until_out <= 1:
+            return "red"
+        if days_until_out <= 3:
+            return "amber"
+
+        # Medication risk level
+        if medication in medication_types["high"]:
+            return "red" if days_until_out <= 3 else "amber"
+        if medication in medication_types["medium"]:
+            return "amber" if days_until_out <= 3 else "green"
+
+        # Polypharmacy and monitoring requirement influence
+        if polypharmacy or monitoring_required:
+            return "red" if days_until_out <= 3 else "amber"
+
+        # Request type influence
+        if request_type in request_types["high"]:
+            return "red"
+        if request_type in request_types["medium"]:
+            return "amber"
+
+        return "green"
+
+    if task in ["sick notes", "referral letters", "medical reports"]:
+        return "green"
+
+    # Escalation over time
+    if time_since_requested > 72:
+        return "red"
+    elif time_since_requested > 48:
+        return "amber"
+
+    return "green"
+
+# Generate dataset with new features for prescription requests
+data_expanded = []
+for _ in range(num_samples):
+    task = np.random.choice(task_types)
+    comorbidity_flags = {c: np.random.choice([0, 1], p=[0.85, 0.15]) for c in comorbidities}
+    bmi = np.random.uniform(18, 40)
+    time_since_requested = np.random.randint(1, 100)  # Hours
+    estimated_duration = np.random.uniform(5, 120)  # Minutes
+
+    critical_result = 0
+    medication = None
+    days_until_out = None
+    polypharmacy = None
+    request_type = None
+    monitoring_required = None
+
+    if task == "review results":
+        critical_result = np.random.choice([0, 1], p=[0.8, 0.2])
+
+    if task == "prescription request":
+        medication, days_until_out, polypharmacy, request_type, monitoring_required = generate_prescription_features()
+
+    priority = assign_priority_with_prescription_features(task, comorbidity_flags, time_since_requested, 
+                                                          critical_result, medication, days_until_out, 
+                                                          polypharmacy, request_type, monitoring_required)
+
+    row = [task] + list(comorbidity_flags.values()) + [bmi, time_since_requested, estimated_duration, 
+                                                       critical_result, medication, days_until_out, 
+                                                       polypharmacy, request_type, monitoring_required, priority]
+    data_expanded.append(row)
+
+# Create DataFrame with expanded features
+columns_expanded = ["Task Type"] + comorbidities + ["BMI", "Time since task requested", 
+                   "Estimated task duration", "Critical result flag", "Medication", 
+                   "Days until out of supply", "Polypharmacy", "Request Type", 
+                   "Monitoring Required", "Priority"]
+
+df_expanded = pd.DataFrame(data_expanded, columns=columns_expanded)
+
+# Show sample of updated dataset
+df_expanded.head()
