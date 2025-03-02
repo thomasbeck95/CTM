@@ -1,8 +1,8 @@
-# **Smart GP Task Manager**
+# **cRank - Smart Clinical Task Manager**
 
 ## **Overview**
 
-The **Smart GP Task Manager** is a digital tool designed to streamline and optimise the daily workflow of General Practitioners (GPs). By automating task triage, prioritising workload, and integrating seamlessly with clinical systems, this tool helps GPs focus on urgent patient needs while efficiently managing routine administrative tasks around regular scheduled appointments.
+The **cRank - Smart Clinical Task Manager** is a digital tool designed to streamline and optimise the daily workflow for clinicians. By automating task triage, prioritising workload, and integrating seamlessly with clinical systems, this tool helps clinicians focus on urgent patient needs while efficiently managing routine administrative tasks around regular scheduled appointments.
 
 ## **Key Features**
 
