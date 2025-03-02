@@ -360,16 +360,12 @@ def edit_task(id):
     
     user_id = session["user_id"]
     username = session["username"]
-    icons = [
-        "Analytics", "Cloud", "Coding", "Communication", "CSS", "Database", 
-        "HTML", "JavaScript", "Leadership", "Project Management", "Public Speaking", 
-        "Sale", "Science", "Teamwork", "Translation", "Writing"
-    ]
+    icons = [ "Prescription Request", "Patient Communication","Sick Notes", "Referral Letters", "Medical Reports", "Review Results" ]
 
     #validate ownership
-    sql_validate = "SELECT user_id FROM tasks WHERE task_id = :task_id"
+    sql_validate = "SELECT user_id FROM tasks WHERE id = :id"
     sql_validate_q = text(sql_validate)
-    result = db.engine.connect().execute(sql_validate_q, {'task_id':id}).fetchone()
+    result = db.engine.connect().execute(sql_validate_q, {'id':id}).fetchone()
     if not result:
         abort(404, description="Item not found.")
         return redirect(url_for('tasks'))
@@ -402,7 +398,7 @@ def edit_task(id):
                 UPDATE tasks 
                 SET  
                 task_name= :task_name, task_icon = :task_icon, task_content = :task_content
-                WHERE user_id = :user_id AND task_id = :task_id
+                WHERE user_id = :user_id AND id = :id
             """
         sql_q = text(sql)
 
@@ -415,7 +411,7 @@ def edit_task(id):
             "task_icon": new_task_icon,
             "task_content": new_task_content,
             "user_id": user_id,
-            "task_id": id
+            "id": id
                 }
         )
         db.session.commit()
@@ -424,9 +420,9 @@ def edit_task(id):
 
 
     #Query for current task
-    sql = "SELECT * FROM tasks WHERE user_id = :user_id AND task_id = :task_id"
+    sql = "SELECT * FROM tasks WHERE user_id = :user_id AND id = :id"
     sql_q = text(sql)
-    user_task = db.engine.connect().execute(sql_q, {'user_id':user_id, 'task_id':id}).fetchone()
+    user_task = db.engine.connect().execute(sql_q, {'user_id':user_id, 'id':id}).fetchone()
 
 
     

@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="container">
+
+    <div class="text-center">
+        <h1 class="h4 mb-2 fw-normal">Edit task</h1>
+    </div>
+    
+        
+    <div class="container text-left form-container">
+        <p class="text-center">Edit your Task in the form below.</p>
+        <form  method="POST" class="row g-2">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <!-- Skill name -->
+            <div class="mb-3 col-md-6">
+                <label for="task_name" class="form-label">Task name</label>
+                <input type="text" name="task_name" class="form-control" placeholder="Python" value="{{user_task.task_name}}" required>
+            </div>
+
+
+            <!-- Task Icon -->
+            <div class="mb-3 col-md-6">
+                <label for="task_icon" class="form-label">Icon</label>
+                <select name="task_icon" class="form-select" required>
+                    <option disabled selected="">Select an icon</option>
+                    {% for icon in icons %}
+                        <option>{{ icon }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+
+            <!-- Task Description -->
+            <div class="mb-3">
+                <label for="task_content" class="form-label">Description</label>
+                <textarea id="task_content" name="task_content" class="form-control" rows="3" placeholder="Details about the task..."></textarea>
+            </div>
+
+
+            <!-- Submit Button -->
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Update Task</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock content %}
