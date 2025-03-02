@@ -444,19 +444,10 @@ def delete_task(id):
         user_id = session["user_id"]
         username = session["username"]
 
-        #validate ownership
-        sql_validate = "SELECT user_id FROM tasks WHERE task_id = :task_id"
-        sql_validate_q = text(sql_validate)
-        result = db.engine.connect().execute(sql_validate_q, {'task_id':id}).fetchone()
-        if result.user_id != user_id:
-            flash('Invalid permission', 'danger')
-            return redirect(url_for('tasks'))
-
-
         #Delete task
         sql = """
                 DELETE FROM tasks 
-                WHERE user_id = :user_id AND task_id = :task_id
+                WHERE user_id = :user_id AND id = :id
             """
         sql_q = text(sql)
 
@@ -465,7 +456,7 @@ def delete_task(id):
             sql_q,
             {
             "user_id": user_id,
-            "task_id": id
+            "id": id
                 }
         )
 
