@@ -82,7 +82,7 @@ The **cRank - Smart Clinical Task Manager** is a digital tool designed to stream
 1. **Syncs with existing clinical systems** to import prescription requests, test results, and admin tasks.
 2. **Uses AI-driven prioritisation** to categorise and rank tasks in real time based on urgency.
 3. **Displays an intuitive dashboard** for GPs to efficiently manage their workload and manually re-order/triage as required.
-4. Trial use with clinicians to train learning 
+4. **Dynamic triage learning** based on clinician manual reordering of tasks.
 5. **Provides smart automation options** to handle low-priority tasks in bulk.
 
 
@@ -118,9 +118,4 @@ The **cRank - Smart Clinical Task Manager** is a digital tool designed to stream
 - Requires **EHR secure login** for access.
 - **Minimal setup required** – plug & play with existing workflows.
 
-## **Get Involved!**
-
-We’re looking for **GPs, software developers, and NHS IT specialists** to collaborate on refining this tool. Join us to **help shape the future of GP workflow automation**! 🚀
-
-For feedback, collaboration, or testing inquiries, contact: **[Your Contact Information]**.
 
