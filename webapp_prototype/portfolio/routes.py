@@ -301,16 +301,14 @@ def tasks():
 
     user_id = session["user_id"]
     username = session["username"]
-    icons = [
-        "Analytics", "Cloud", "Coding", "Communication", "CSS", "Database", 
-        "HTML", "JavaScript", "Leadership", "Project Management", "Public Speaking", 
-        "Sale", "Science", "Teamwork", "Translation", "Writing"
-    ]
+    icons = [ "Prescription Request", "Patient Communication","Sick Notes", "Referral Letters", "Medical Reports", "Review Results" ]
 
     if request.method == "POST":
         task_name = request.form.get("task_name")
         task_content = request.form.get("task_content")
         task_icon = request.form.get("task_icon")
+        active = 1
+        
 
         #Ensure name is not null
         if not task_name:
@@ -325,9 +323,9 @@ def tasks():
 
         sql = """
                 INSERT INTO tasks 
-                (task_name, task_content, task_icon, user_id) 
+                (task_name, task_content, task_icon, user_id, active) 
                 VALUES 
-                (:task_name, :task_content, :task_icon, :user_id)
+                (:task_name, :task_content, :task_icon, :user_id, :active)
             """
         sql_q = text(sql)
 
@@ -338,7 +336,8 @@ def tasks():
             "task_name": task_name,
             "task_content": task_content,
             "task_icon": task_icon,
-            "user_id": user_id
+            "user_id": user_id,
+            "active": active
                 }
         )
 
@@ -346,9 +345,9 @@ def tasks():
         return redirect(url_for('tasks'))
 
 
-    sql = "SELECT * FROM tasks WHERE user_id = :user_id"
+    sql = "SELECT * FROM tasks WHERE user_id = :user_id AND active = :active"
     sql = text(sql)
-    user_tasks = db.engine.connect().execute(sql, {'user_id': user_id}).fetchall()
+    user_tasks = db.engine.connect().execute(sql, {'user_id': user_id, 'active': 1}).fetchall()
 
     return render_template("tasks.html", username=username, icons=icons, user_tasks=user_tasks)
 
@@ -939,3 +938,19 @@ def portfolio(username):
 
 
     return render_template('portfolio.html', user=user, user_tasks=user_tasks, user_experience_list=user_experience_list, user_projects=user_projects)
+
+@app.route('/toggle_task/<int:id>', methods=['POST'])
+def toggle_task(id):
+    if request.method == 'POST':
+        if not session.get("user_id"):
+            flash("Please login first", "warning")
+            return redirect(url_for('login'))
+
+        user_id = session["user_id"]
+        username = session["username"]
+
+        sql = "UPDATE tasks SET active = :new_status WHERE id = :task_id AND user_id = :user_id"
+        sql_query = text(sql)
+        db.session.execute(sql_query, {'new_status': 0, 'task_id': id, 'user_id': user_id})
+        db.session.commit()
+        return redirect(url_for('tasks'))
