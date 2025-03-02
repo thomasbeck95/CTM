@@ -473,6 +473,23 @@ def delete_task(id):
         return redirect(url_for('tasks'))
 
 
+@app.route('/completed_tasks', methods = ['GET', 'POST'])
+def completed_tasks():
+    if not session.get("user_id"):
+        flash("Please login first", "warning")
+        return redirect(url_for('login'))
+
+    user_id = session["user_id"]
+    username = session["username"]
+    icons = [ "Prescription Request", "Patient Communication","Sick Notes", "Referral Letters", "Medical Reports", "Review Results" ]
+
+    sql = "SELECT * FROM tasks WHERE user_id = :user_id AND active = :active"
+    sql = text(sql)
+    user_tasks = db.engine.connect().execute(sql, {'user_id': user_id, 'active': 0}).fetchall()
+
+    return render_template("completed_tasks.html", username=username, icons=icons, user_tasks=user_tasks)
+
+
 @app.route('/experience', methods = ['GET', 'POST'])
 def experience():
     if not session.get("user_id"):
