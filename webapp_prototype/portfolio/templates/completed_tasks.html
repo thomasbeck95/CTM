@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="container">
+    <div class="text-center skills-container">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <p class="alert alert-{{ category }}">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <h1 class="h4 mb-2 fw-normal">Completed</h1>
+
+        <div class="container text-center px-3 gy-3">
+            {% if user_tasks %}
+                <div class="list-group">
+                    {% for row in user_tasks %}
+                        <div class="list-group-item d-flex align-items-center justify-content-between p-3">
+                            <!-- Checkbox -->
+                            <form action="{{ url_for('toggle_completed_task', id=row.id) }}" method="POST" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="checkbox" class="form-check-input me-2"  onchange="this.form.submit();">
+                            </form>
+
+                            <!-- Task Name and Description -->
+                            <div class="text-start flex-grow-1">
+                                <p class="mb-0 fw-bold">
+                                    {{ row.task_name }}
+                                </p>
+                                <small class="text-muted">
+                                    {{ row.task_content }}
+                                </small>
+                            </div>
+
+                            <!-- Task Icon -->
+                            <img class="skill-icon ms-3" src="{{ url_for('static', filename='img/' + (row.task_icon if row.task_icon else 'default') + '.png') }}" width="30" height="30">
+
+                            <!-- Action Buttons -->
+                            <div class="ms-3">
+                                <a href="{{ url_for('edit_task', id=row.id) }}" class="btn btn-sm btn-warning">Edit</a>
+                                <form action="{{ url_for('delete_task', id=row.id) }}" method="POST" style="display: inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?');">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+
+
+    </div>
+</div>
+
+<!-- Custom Styling -->
+<style>
+    .completed-task {
+        background-color: #e9ecef;
+    }
+    .skill-icon {
+        border-radius: 50%;
+        border: 1px solid #ccc;
+    }
+</style>
+
+{% endblock content %}

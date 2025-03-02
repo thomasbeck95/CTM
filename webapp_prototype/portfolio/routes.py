@@ -293,68 +293,67 @@ def about():
     return render_template("about.html", username=username, user_id=user_id, about=about)
 
 
-@app.route('/skills', methods = ['GET', 'POST'])
-def skills():
+@app.route('/tasks', methods = ['GET', 'POST'])
+def tasks():
     if not session.get("user_id"):
         flash("Please login first", "warning")
         return redirect(url_for('login'))
 
     user_id = session["user_id"]
     username = session["username"]
-    icons = [
-        "Analytics", "Cloud", "Coding", "Communication", "CSS", "Database", 
-        "HTML", "JavaScript", "Leadership", "Project Management", "Public Speaking", 
-        "Sale", "Science", "Teamwork", "Translation", "Writing"
-    ]
+    icons = [ "Prescription Request", "Patient Communication","Sick Notes", "Referral Letters", "Medical Reports", "Review Results" ]
 
     if request.method == "POST":
-        skill_name = request.form.get("skill_name")
-        skill_content = request.form.get("skill_content")
-        skill_icon = request.form.get("skill_icon")
+        task_name = request.form.get("task_name")
+        task_content = request.form.get("task_content")
+        task_icon = request.form.get("task_icon")
+        active = 1
+        
 
         #Ensure name is not null
-        if not skill_name:
-            flash("Please enter skill name", "danger")
-            return redirect( url_for('skills'))
+        if not task_name:
+            flash("Please enter task name", "danger")
+            return redirect( url_for('tasks'))
 
 
-        #validate skill_icon
-        if skill_icon not in icons:
+        #validate task_icon
+        if task_icon not in icons:
             flash("Unsupported icon submitted", "danger")
-            return redirect( url_for('skills'))
+            return redirect( url_for('tasks'))
 
         sql = """
-                INSERT INTO skills 
-                (skill_name, skill_content, skill_icon, user_id) 
+                INSERT INTO tasks 
+                (task_name, task_content, task_icon, user_id, active) 
                 VALUES 
-                (:skill_name, :skill_content, :skill_icon, :user_id)
+                (:task_name, :task_content, :task_icon, :user_id, :active)
             """
         sql_q = text(sql)
 
-        #Add skill
+        #Add task
         db.session.execute(
             sql_q,
             {
-            "skill_name": skill_name,
-            "skill_content": skill_content,
-            "skill_icon": skill_icon,
-            "user_id": user_id
+            "task_name": task_name,
+            "task_content": task_content,
+            "task_icon": task_icon,
+            "user_id": user_id,
+            "active": active
                 }
         )
 
         db.session.commit()
-        return redirect(url_for('skills'))
+        return redirect(url_for('tasks'))
 
 
-    sql = "SELECT * FROM skills WHERE user_id = :user_id"
+    sql = "SELECT * FROM tasks WHERE user_id = :user_id AND active = :active"
     sql = text(sql)
-    user_skills = db.engine.connect().execute(sql, {'user_id': user_id}).fetchall()
+    user_tasks = db.engine.connect().execute(sql, {'user_id': user_id, 'active': 1}).fetchall()
 
-    return render_template("skills.html", username=username, icons=icons, user_skills=user_skills)
+    return render_template("tasks.html", username=username, icons=icons, user_tasks=user_tasks)
 
 
-@app.route('/skills/edit/<int:id>', methods = ['GET', 'POST'])
-def edit_skill(id):
+@app.route('/tasks/edit/<int:id>', methods = ['GET', 'POST'])
+def edit_task(id):
     if not session.get("user_id"):
         flash("Please login first", "warning")
         return redirect(url_for('login'))
@@ -368,75 +367,75 @@ def edit_skill(id):
     ]
 
     #validate ownership
-    sql_validate = "SELECT user_id FROM skills WHERE skill_id = :skill_id"
+    sql_validate = "SELECT user_id FROM tasks WHERE task_id = :task_id"
     sql_validate_q = text(sql_validate)
-    result = db.engine.connect().execute(sql_validate_q, {'skill_id':id}).fetchone()
+    result = db.engine.connect().execute(sql_validate_q, {'task_id':id}).fetchone()
     if not result:
         abort(404, description="Item not found.")
-        return redirect(url_for('skills'))
+        return redirect(url_for('tasks'))
 
 
     if result.user_id != user_id:
         flash("Invalid permission.", "danger")
-        return redirect(url_for('skills'))
+        return redirect(url_for('tasks'))
     
 
     if request.method == 'POST':
-        new_skill_name = request.form.get('skill_name')
-        new_skill_icon = request.form.get('skill_icon')
-        new_skill_content = request.form.get('skill_content')
+        new_task_name = request.form.get('task_name')
+        new_task_icon = request.form.get('task_icon')
+        new_task_content = request.form.get('task_content')
     
         #Ensure name is not null
-        if not new_skill_name:
-            flash("Please enter skill name", "danger")
-            return redirect(url_for('skills'))
+        if not new_task_name:
+            flash("Please enter task name", "danger")
+            return redirect(url_for('tasks'))
 
 
-        #validate skill_icon
-        if new_skill_icon not in icons:
+        #validate task_icon
+        if new_task_icon not in icons:
             flash("Unsupported icon submitted", "danger")
-            return redirect(url_for('skills'))
+            return redirect(url_for('tasks'))
 
         
 
         sql = """
-                UPDATE skills 
+                UPDATE tasks 
                 SET  
-                skill_name= :skill_name, skill_icon = :skill_icon, skill_content = :skill_content
-                WHERE user_id = :user_id AND skill_id = :skill_id
+                task_name= :task_name, task_icon = :task_icon, task_content = :task_content
+                WHERE user_id = :user_id AND task_id = :task_id
             """
         sql_q = text(sql)
 
 
-        #Update skill
+        #Update task
         db.session.execute(
             sql_q,
             {
-            "skill_name": new_skill_name,
-            "skill_icon": new_skill_icon,
-            "skill_content": new_skill_content,
+            "task_name": new_task_name,
+            "task_icon": new_task_icon,
+            "task_content": new_task_content,
             "user_id": user_id,
-            "skill_id": id
+            "task_id": id
                 }
         )
         db.session.commit()
-        flash("Skill updated successfully!", "success")
-        return redirect( url_for('skills'))
+        flash("task updated successfully!", "success")
+        return redirect( url_for('tasks'))
 
 
-    #Query for current skill
-    sql = "SELECT * FROM skills WHERE user_id = :user_id AND skill_id = :skill_id"
+    #Query for current task
+    sql = "SELECT * FROM tasks WHERE user_id = :user_id AND task_id = :task_id"
     sql_q = text(sql)
-    user_skill = db.engine.connect().execute(sql_q, {'user_id':user_id, 'skill_id':id}).fetchone()
+    user_task = db.engine.connect().execute(sql_q, {'user_id':user_id, 'task_id':id}).fetchone()
 
 
     
-    return render_template("edit_skill.html", user_skill=user_skill, icons=icons)
+    return render_template("edit_task.html", user_task=user_task, icons=icons)
 
 
 
-@app.route('/skills/delete/<int:id>', methods = ['POST'])
-def delete_skill(id):
+@app.route('/tasks/delete/<int:id>', methods = ['POST'])
+def delete_task(id):
     if request.method == 'POST':
         if not session.get("user_id"):
             flash("Please login first", "warning")
@@ -445,19 +444,10 @@ def delete_skill(id):
         user_id = session["user_id"]
         username = session["username"]
 
-        #validate ownership
-        sql_validate = "SELECT user_id FROM skills WHERE skill_id = :skill_id"
-        sql_validate_q = text(sql_validate)
-        result = db.engine.connect().execute(sql_validate_q, {'skill_id':id}).fetchone()
-        if result.user_id != user_id:
-            flash('Invalid permission', 'danger')
-            return redirect(url_for('skills'))
-
-
-        #Delete skill
+        #Delete task
         sql = """
-                DELETE FROM skills 
-                WHERE user_id = :user_id AND skill_id = :skill_id
+                DELETE FROM tasks 
+                WHERE user_id = :user_id AND id = :id
             """
         sql_q = text(sql)
 
@@ -466,12 +456,29 @@ def delete_skill(id):
             sql_q,
             {
             "user_id": user_id,
-            "skill_id": id
+            "id": id
                 }
         )
 
         db.session.commit()
-        return redirect(url_for('skills'))
+        return redirect(url_for('tasks'))
+
+
+@app.route('/completed_tasks', methods = ['GET', 'POST'])
+def completed_tasks():
+    if not session.get("user_id"):
+        flash("Please login first", "warning")
+        return redirect(url_for('login'))
+
+    user_id = session["user_id"]
+    username = session["username"]
+    icons = [ "Prescription Request", "Patient Communication","Sick Notes", "Referral Letters", "Medical Reports", "Review Results" ]
+
+    sql = "SELECT * FROM tasks WHERE user_id = :user_id AND active = :active"
+    sql = text(sql)
+    user_tasks = db.engine.connect().execute(sql, {'user_id': user_id, 'active': 0}).fetchall()
+
+    return render_template("completed_tasks.html", username=username, icons=icons, user_tasks=user_tasks)
 
 
 @app.route('/experience', methods = ['GET', 'POST'])
@@ -659,7 +666,7 @@ def delete_experience(id):
             return redirect(url_for('experience'))
 
 
-        #Delete skill
+        #Delete task
         sql = """
                 DELETE FROM experience 
                 WHERE user_id = :user_id AND experience_id = :experience_id
@@ -863,7 +870,7 @@ def delete_project(id):
             return redirect(url_for('projects'))
 
 
-        #Delete skill
+        #Delete task
         sql = """
                 DELETE FROM projects 
                 WHERE user_id = :user_id AND project_id = :project_id
@@ -898,11 +905,11 @@ def portfolio(username):
 
     user_id = user.id
 
-    #Get skills
-    sql = "SELECT * FROM skills WHERE user_id = :user_id"
+    #Get tasks
+    sql = "SELECT * FROM tasks WHERE user_id = :user_id"
     sql_q = text(sql)
     with db.engine.connect() as connection:
-        user_skills = connection.execute(sql_q, {'user_id': user_id}).fetchall()
+        user_tasks = connection.execute(sql_q, {'user_id': user_id}).fetchall()
 
 
     #Get experience
@@ -938,4 +945,37 @@ def portfolio(username):
 
 
 
-    return render_template('portfolio.html', user=user, user_skills=user_skills, user_experience_list=user_experience_list, user_projects=user_projects)
+    return render_template('portfolio.html', user=user, user_tasks=user_tasks, user_experience_list=user_experience_list, user_projects=user_projects)
+
+@app.route('/toggle_task/<int:id>', methods=['POST'])
+def toggle_task(id):
+    if request.method == 'POST':
+        if not session.get("user_id"):
+            flash("Please login first", "warning")
+            return redirect(url_for('login'))
+
+        user_id = session["user_id"]
+        username = session["username"]
+
+        sql = "UPDATE tasks SET active = :new_status WHERE id = :task_id AND user_id = :user_id"
+        sql_query = text(sql)
+        db.session.execute(sql_query, {'new_status': 0, 'task_id': id, 'user_id': user_id})
+        db.session.commit()
+        return redirect(url_for('tasks'))
+
+
+@app.route('/toggle_completed_task/<int:id>', methods=['POST'])
+def toggle_completed_task(id):
+    if request.method == 'POST':
+        if not session.get("user_id"):
+            flash("Please login first", "warning")
+            return redirect(url_for('login'))
+
+        user_id = session["user_id"]
+        username = session["username"]
+
+        sql = "UPDATE tasks SET active = :new_status WHERE id = :task_id AND user_id = :user_id"
+        sql_query = text(sql)
+        db.session.execute(sql_query, {'new_status': 1, 'task_id': id, 'user_id': user_id})
+        db.session.commit()
+        return redirect(url_for('completed_tasks'))

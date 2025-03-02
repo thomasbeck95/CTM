@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="container">
+    <div class="text-center skills-container">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <p class="alert alert-{{ category }}">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <h1 class="h4 mb-2 fw-normal">To-Do List</h1>
+
+        <div class="container text-center px-3 gy-3">
+            {% if user_tasks %}
+                <div class="list-group">
+                    {% for row in user_tasks %}
+                        <div class="list-group-item d-flex align-items-center justify-content-between p-3">
+                            <!-- Checkbox -->
+                            <form action="{{ url_for('toggle_task', id=row.id) }}" method="POST" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="checkbox" class="form-check-input me-2"  onchange="this.form.submit();">
+                            </form>
+
+                            <!-- Task Name and Description -->
+                            <div class="text-start flex-grow-1">
+                                <p class="mb-0 fw-bold">
+                                    {{ row.task_name }}
+                                </p>
+                                <small class="text-muted">
+                                    {{ row.task_content }}
+                                </small>
+                            </div>
+
+                            <!-- Task Icon -->
+                            <img class="skill-icon ms-3" src="{{ url_for('static', filename='img/' + (row.task_icon if row.task_icon else 'default') + '.png') }}" width="30" height="30">
+
+                            <!-- Action Buttons -->
+                            <div class="ms-3">
+                                <a href="{{ url_for('edit_task', id=row.id) }}" class="btn btn-sm btn-warning">Edit</a>
+                                <form action="{{ url_for('delete_task', id=row.id) }}" method="POST" style="display: inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?');">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted">No tasks added yet. Start by adding a new task below.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Add New Task Form -->
+    <div class="container text-left form-container mt-4">
+        <p class="text-center">Add a new task below.</p>
+        <form action="/tasks" method="POST" class="row g-2">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <!-- Task Name -->
+            <div class="mb-3 col-md-6">
+                <label for="task_name" class="form-label">Task</label>
+                <input type="text" name="task_name" class="form-control" placeholder="e.g., Blood Test" required>
+            </div>
+
+            <!-- Task Icon -->
+            <div class="mb-3 col-md-6">
+                <label for="task_icon" class="form-label">Icon</label>
+                <select name="task_icon" class="form-select" required>
+                    <option disabled selected="">Select an icon</option>
+                    {% for icon in icons %}
+                        <option>{{ icon }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Task Description -->
+            <div class="mb-3">
+                <label for="task_content" class="form-label">Description</label>
+                <textarea id="task_content" name="task_content" class="form-control" rows="3" placeholder="Details about the task..."></textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Add Task</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Custom Styling -->
+<style>
+    .completed-task {
+        background-color: #e9ecef;
+    }
+    .skill-icon {
+        border-radius: 50%;
+        border: 1px solid #ccc;
+    }
+</style>
+
+{% endblock content %}
