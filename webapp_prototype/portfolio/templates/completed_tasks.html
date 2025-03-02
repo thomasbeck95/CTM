@@ -19,6 +19,11 @@
                 <div class="list-group">
                     {% for row in user_tasks %}
                         <div class="list-group-item d-flex align-items-center justify-content-between p-3">
+                            <!-- Checkbox -->
+                            <form action="{{ url_for('toggle_completed_task', id=row.id) }}" method="POST" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="checkbox" class="form-check-input me-2"  onchange="this.form.submit();">
+                            </form>
 
                             <!-- Task Name and Description -->
                             <div class="text-start flex-grow-1">

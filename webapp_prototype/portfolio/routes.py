@@ -962,3 +962,20 @@ def toggle_task(id):
         db.session.execute(sql_query, {'new_status': 0, 'task_id': id, 'user_id': user_id})
         db.session.commit()
         return redirect(url_for('tasks'))
+
+
+@app.route('/toggle_completed_task/<int:id>', methods=['POST'])
+def toggle_completed_task(id):
+    if request.method == 'POST':
+        if not session.get("user_id"):
+            flash("Please login first", "warning")
+            return redirect(url_for('login'))
+
+        user_id = session["user_id"]
+        username = session["username"]
+
+        sql = "UPDATE tasks SET active = :new_status WHERE id = :task_id AND user_id = :user_id"
+        sql_query = text(sql)
+        db.session.execute(sql_query, {'new_status': 1, 'task_id': id, 'user_id': user_id})
+        db.session.commit()
+        return redirect(url_for('completed_tasks'))
